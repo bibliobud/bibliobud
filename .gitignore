@@ -1,0 +1,49 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Go
+/vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build output
+/server
+/tmp/
+
+# Tailwind
+static/css/out.css
+
+# Air (live reload)
+.air.toml
+tmp/
+
+# Node
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keys and certificates
+*.pem
+*.key
+*.crt
+*.p12
+
+# Database dumps
+*.sql.gz
+*.dump
