@@ -1,0 +1,38 @@
+type: object
+description: |
+  A BiblioBud account. The `email` field is only ever returned to the
+  account owner; other consumers see at most `username` and `display_name`.
+required: [id, username, public_profile, created_at]
+properties:
+  id:
+    type: string
+    format: uuid
+    readOnly: true
+  email:
+    type: string
+    format: email
+    description: Only returned for the authenticated user (`/users/me`).
+  username:
+    type: string
+    minLength: 3
+    maxLength: 32
+    pattern: '^[a-z0-9_-]+$'
+  display_name:
+    type: string
+    nullable: true
+    maxLength: 80
+  public_profile:
+    type: boolean
+    description: |
+      Whether this user's profile, public reviews, and follower lists are
+      visible to other users on the instance.
+  external_auth_provider:
+    type: string
+    nullable: true
+    readOnly: true
+    enum: [firebase, local]
+    description: Which auth provider owns this account's identity.
+  created_at:
+    type: string
+    format: date-time
+    readOnly: true

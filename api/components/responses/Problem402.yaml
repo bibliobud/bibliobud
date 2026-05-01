@@ -1,0 +1,16 @@
+description: |
+  Entitlement required. The user's plan does not grant the capability
+  this endpoint requires. Inspect `capability` in the response body to
+  identify which capability is missing. Always 200 on self-hosted
+  instances (capability gating is a no-op).
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    example:
+      type: https://bibliobud.com/errors/entitlement-required
+      title: Entitlement required
+      status: 402
+      code: entitlement.required
+      detail: This endpoint requires the `analytics` capability.
+      capability: analytics

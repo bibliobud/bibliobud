@@ -1,0 +1,12 @@
+description: |
+  Resource is gone — soft-deleted within the last 30 days. After the
+  retention window, requests return 404 instead.
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    example:
+      type: https://bibliobud.com/errors/resource-gone
+      title: Gone
+      status: 410
+      code: resource.gone

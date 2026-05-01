@@ -1,0 +1,110 @@
+# Capability-gated routes. Reserved in v1: schemas are stable but
+# implementations may return 402 with code: entitlement.required and
+# capability: analytics on hosted free-tier accounts. Self-host: always
+# returns the data.
+
+/analytics/reading-stats:
+  get:
+    summary: Reading statistics for the authenticated user
+    description: |
+      Aggregate stats: counts by status, books per year, average rating,
+      reading streak. Capability-gated (`analytics`).
+    operationId: analyticsReadingStats
+    tags: [analytics]
+    parameters:
+      - name: from
+        in: query
+        schema:
+          type: string
+          format: date
+      - name: to
+        in: query
+        schema:
+          type: string
+          format: date
+    responses:
+      "200":
+        description: Reading stats.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                total_books:
+                  type: integer
+                by_status:
+                  type: object
+                  additionalProperties:
+                    type: integer
+                books_per_year:
+                  type: array
+                  items:
+                    type: object
+                    required: [year, count]
+                    properties:
+                      year:
+                        type: integer
+                      count:
+                        type: integer
+                average_rating:
+                  type: number
+                  nullable: true
+                current_streak_days:
+                  type: integer
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "402":
+        $ref: ../components/responses/Problem402.yaml
+
+/analytics/yearly-summary:
+  get:
+    summary: Yearly reading summary
+    description: |
+      A "year in books" summary for the given year. Capability-gated
+      (`analytics`).
+    operationId: analyticsYearlySummary
+    tags: [analytics]
+    parameters:
+      - name: year
+        in: query
+        required: true
+        schema:
+          type: integer
+          minimum: 1900
+          maximum: 2100
+    responses:
+      "200":
+        description: Summary.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                year:
+                  type: integer
+                books_read:
+                  type: integer
+                pages_read:
+                  type: integer
+                top_authors:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      author:
+                        type: string
+                      count:
+                        type: integer
+                top_tags:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      tag:
+                        type: string
+                      count:
+                        type: integer
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "402":
+        $ref: ../components/responses/Problem402.yaml

@@ -1,0 +1,138 @@
+/books/{isbn}/reviews:
+  parameters:
+    - $ref: ../components/parameters/ISBN.yaml
+
+  get:
+    summary: Public reviews for a book
+    description: |
+      Returns reviews with `visibility: public`. The authenticated user's
+      own private review (if any) is also included.
+    operationId: reviewsListForBook
+    tags: [reviews]
+    security:
+      - bearer: []
+      - cookie: []
+      - {}
+    parameters:
+      - $ref: ../components/parameters/Cursor.yaml
+      - $ref: ../components/parameters/Limit.yaml
+    responses:
+      "200":
+        description: Page of reviews.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: ../components/schemas/Pagination.yaml
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: ../components/schemas/Review.yaml
+
+/reviews:
+  post:
+    summary: Create a review
+    description: |
+      One review per (user, book). Returns 409 if a non-deleted review
+      already exists for this book — use `PATCH /reviews/{id}` to update.
+    operationId: reviewsCreate
+    tags: [reviews]
+    parameters:
+      - $ref: ../components/parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [isbn, body]
+            properties:
+              isbn:
+                type: string
+              body:
+                type: string
+                minLength: 1
+                maxLength: 20000
+              rating:
+                type: integer
+                minimum: 1
+                maximum: 5
+              visibility:
+                type: string
+                enum: [private, public]
+                default: private
+    responses:
+      "201":
+        description: Review created.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Review.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+      "409":
+        $ref: ../components/responses/Problem409.yaml
+
+/reviews/{id}:
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  patch:
+    summary: Update a review
+    operationId: reviewsUpdate
+    tags: [reviews]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              body:
+                type: string
+                minLength: 1
+                maxLength: 20000
+              rating:
+                type: integer
+                nullable: true
+                minimum: 1
+                maximum: 5
+              visibility:
+                type: string
+                enum: [private, public]
+    responses:
+      "200":
+        description: Updated review.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Review.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+  delete:
+    summary: Soft-delete a review
+    operationId: reviewsDelete
+    tags: [reviews]
+    responses:
+      "204":
+        description: Review removed.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml

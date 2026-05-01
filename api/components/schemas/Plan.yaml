@@ -1,0 +1,37 @@
+type: object
+description: |
+  The authenticated user's current plan and the capability set it grants.
+  On self-hosted instances every user is on the `unlimited` plan with
+  every capability enabled — capability gating is a no-op.
+
+  Clients SHOULD use `capabilities` to decide whether to expose a feature
+  in the UI; the server is still authoritative and will return 402 with
+  `code: "entitlement.required"` if a gated endpoint is hit without the
+  capability.
+required: [plan, status, capabilities]
+properties:
+  plan:
+    type: string
+    enum: [free, pro, unlimited]
+    description: |
+      `unlimited` is the self-host default and grants every capability.
+      `free` and `pro` apply to hosted instances.
+  status:
+    type: string
+    enum: [active, past_due, canceled]
+    description: |
+      Subscription state on hosted instances. `past_due` retains
+      capabilities until `valid_until`. Always `active` on self-host.
+  valid_until:
+    type: string
+    format: date-time
+    nullable: true
+    description: |
+      Grace-period deadline for `past_due`, or scheduled end date for
+      `canceled`. Null when status is `active`.
+  capabilities:
+    type: array
+    description: The capabilities currently available to the user.
+    items:
+      type: string
+      example: analytics

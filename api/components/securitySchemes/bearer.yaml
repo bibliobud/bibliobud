@@ -1,0 +1,9 @@
+type: http
+scheme: bearer
+bearerFormat: opaque
+description: |
+  Opaque session token presented as `Authorization: Bearer <token>`.
+  The same token also works as the `bb_session` cookie. Tokens are
+  obtained from `/auth/login`, `/auth/signup`, or
+  `/auth/firebase/exchange`. Treat tokens as credentials — never log
+  or share them. Use `/auth/logout` to revoke.

@@ -1,0 +1,37 @@
+type: object
+description: |
+  A user-defined virtual bookshelf — a named bucket of books the user has
+  curated. There are no system shelves; reading status (wanted/reading/
+  read/dnf) is tracked separately on the user-book anchor.
+required: [id, name, item_count]
+properties:
+  id:
+    type: string
+    format: uuid
+    readOnly: true
+  name:
+    type: string
+    minLength: 1
+    maxLength: 80
+    description: Unique within the user's account.
+    example: Sci-Fi Favourites
+  description:
+    type: string
+    nullable: true
+    maxLength: 1000
+  sort_order:
+    type: integer
+    default: 0
+    description: Used to order shelves in the UI; lower sorts first.
+  item_count:
+    type: integer
+    readOnly: true
+    description: Number of books currently on the shelf.
+  created_at:
+    type: string
+    format: date-time
+    readOnly: true
+  updated_at:
+    type: string
+    format: date-time
+    readOnly: true

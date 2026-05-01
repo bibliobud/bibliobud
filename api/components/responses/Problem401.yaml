@@ -1,0 +1,11 @@
+description: Authentication required or session invalid.
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    example:
+      type: https://bibliobud.com/errors/auth-required
+      title: Authentication required
+      status: 401
+      code: auth.required
+      detail: This endpoint requires a valid session.

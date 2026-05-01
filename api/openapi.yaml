@@ -1,0 +1,199 @@
+openapi: 3.0.3
+
+info:
+  title: BiblioBud API
+  version: 0.1.0
+  description: |
+    Open-source book tracking with data portability.
+
+
+    BiblioBud is an open-source GoodReads alternative built around three
+    promises: own your data, host it yourself, and treat the API as a
+    first-class public contract.
+
+    ## Conventions
+
+    - **Base URL**: `/api/v1`. Breaking changes ship a new version prefix.
+    - **Auth**: `Authorization: Bearer <opaque-session-token>` OR the
+      `bb_session` cookie. One token, two transports.
+    - **Errors**: RFC 7807 with a stable `code` extension. Switch on `code`,
+      never on `title`. See `docs/api/errors.md`.
+    - **Pagination**: opaque cursors via `?cursor=&limit=`. Offset is not
+      supported — see `docs/api/pagination.md`.
+    - **Idempotency**: `Idempotency-Key` header on POSTs that create
+      resources, 24h dedup window.
+    - **Soft delete**: `DELETE` returns 204; resources return 410 for 30
+      days, then 404.
+    - **Timestamps**: RFC 3339 UTC.
+
+    ## Capability gating
+
+    Some endpoints require a capability the user's plan grants. On hosted
+    instances, missing capabilities return 402 with `code: entitlement.required`
+    and a `capability` field naming the missing capability. Self-hosted
+    instances grant every capability to every user — gating is a no-op.
+
+    ## License
+
+    BiblioBud is AGPL-3.0. Software that consumes this API over HTTP is
+    explicitly NOT considered a derivative work — third-party clients
+    (browser extensions, mobile apps, scripts) are free to use any
+    license they choose.
+
+  contact:
+    name: BiblioBud
+    url: https://github.com/bibliobud/bibliobud
+  license:
+    name: AGPL-3.0-or-later
+    url: https://www.gnu.org/licenses/agpl-3.0.html
+
+servers:
+  - url: https://bibliobud.com/api/v1
+    description: Hosted production
+  - url: http://localhost:8080/api/v1
+    description: Local development / self-hosted default
+
+tags:
+  - name: auth
+    description: Sessions, signup, login, password reset, identity exchange.
+  - name: users
+    description: User profile, account deletion, GDPR export.
+  - name: books
+    description: Canonical book metadata, shared across users.
+  - name: library
+    description: The user-book relationship — status, rating, dates, notes.
+  - name: copies
+    description: Physical (or digital) instances the user owns.
+  - name: bookshelves
+    description: User-defined virtual shelves.
+  - name: tags
+    description: Per-user, cross-cutting labels.
+  - name: reviews
+    description: Public and private reviews.
+  - name: follows
+    description: Social graph (minimal).
+  - name: imports
+    description: User-data imports (GoodReads, StoryGraph, LibraryThing, BiblioBud, generic CSV).
+  - name: analytics
+    description: Capability-gated reading statistics.
+  - name: meta
+    description: Liveness, readiness, OpenAPI spec.
+
+security:
+  - bearer: []
+  - cookie: []
+
+paths:
+
+  # Auth
+  /auth/signup:
+    $ref: ./paths/auth.yaml#/~1auth~1signup
+  /auth/login:
+    $ref: ./paths/auth.yaml#/~1auth~1login
+  /auth/firebase/exchange:
+    $ref: ./paths/auth.yaml#/~1auth~1firebase~1exchange
+  /auth/logout:
+    $ref: ./paths/auth.yaml#/~1auth~1logout
+  /auth/password/reset/request:
+    $ref: ./paths/auth.yaml#/~1auth~1password~1reset~1request
+  /auth/password/reset/confirm:
+    $ref: ./paths/auth.yaml#/~1auth~1password~1reset~1confirm
+  /auth/me:
+    $ref: ./paths/auth.yaml#/~1auth~1me
+
+  # Users
+  /users/me:
+    $ref: ./paths/users.yaml#/~1users~1me
+  /users/me/export:
+    $ref: ./paths/users.yaml#/~1users~1me~1export
+  /users/{username}:
+    $ref: ./paths/users.yaml#/~1users~1{username}
+
+  # Books
+  /books/{isbn}:
+    $ref: ./paths/books.yaml#/~1books~1{isbn}
+  /books/search:
+    $ref: ./paths/books.yaml#/~1books~1search
+  /books/refresh/{isbn}:
+    $ref: ./paths/books.yaml#/~1books~1refresh~1{isbn}
+
+  # Library
+  /library:
+    $ref: ./paths/library.yaml#/~1library
+  /library/{isbn}:
+    $ref: ./paths/library.yaml#/~1library~1{isbn}
+
+  # Copies
+  /copies:
+    $ref: ./paths/copies.yaml#/~1copies
+  /copies/{id}:
+    $ref: ./paths/copies.yaml#/~1copies~1{id}
+
+  # Bookshelves
+  /bookshelves:
+    $ref: ./paths/bookshelves.yaml#/~1bookshelves
+  /bookshelves/{id}:
+    $ref: ./paths/bookshelves.yaml#/~1bookshelves~1{id}
+  /bookshelves/{id}/items:
+    $ref: ./paths/bookshelves.yaml#/~1bookshelves~1{id}~1items
+  /bookshelves/{id}/items/{isbn}:
+    $ref: ./paths/bookshelves.yaml#/~1bookshelves~1{id}~1items~1{isbn}
+
+  # Tags
+  /tags:
+    $ref: ./paths/tags.yaml#/~1tags
+  /tags/{id}:
+    $ref: ./paths/tags.yaml#/~1tags~1{id}
+  /tags/{id}/books:
+    $ref: ./paths/tags.yaml#/~1tags~1{id}~1books
+  /library/{isbn}/tags:
+    $ref: ./paths/tags.yaml#/~1library~1{isbn}~1tags
+  /library/{isbn}/tags/{tag_id}:
+    $ref: ./paths/tags.yaml#/~1library~1{isbn}~1tags~1{tag_id}
+
+  # Reviews
+  /books/{isbn}/reviews:
+    $ref: ./paths/reviews.yaml#/~1books~1{isbn}~1reviews
+  /reviews:
+    $ref: ./paths/reviews.yaml#/~1reviews
+  /reviews/{id}:
+    $ref: ./paths/reviews.yaml#/~1reviews~1{id}
+
+  # Follows
+  /follows/{username}:
+    $ref: ./paths/follows.yaml#/~1follows~1{username}
+  /users/me/following:
+    $ref: ./paths/follows.yaml#/~1users~1me~1following
+  /users/me/followers:
+    $ref: ./paths/follows.yaml#/~1users~1me~1followers
+
+  # Imports
+  /imports/sources:
+    $ref: ./paths/imports.yaml#/~1imports~1sources
+  /imports:
+    $ref: ./paths/imports.yaml#/~1imports
+  /imports/{job_id}:
+    $ref: ./paths/imports.yaml#/~1imports~1{job_id}
+  /imports/{job_id}/errors:
+    $ref: ./paths/imports.yaml#/~1imports~1{job_id}~1errors
+
+  # Analytics (capability-gated)
+  /analytics/reading-stats:
+    $ref: ./paths/analytics.yaml#/~1analytics~1reading-stats
+  /analytics/yearly-summary:
+    $ref: ./paths/analytics.yaml#/~1analytics~1yearly-summary
+
+  # Meta
+  /healthz:
+    $ref: ./paths/meta.yaml#/~1healthz
+  /readyz:
+    $ref: ./paths/meta.yaml#/~1readyz
+  /openapi.yaml:
+    $ref: ./paths/meta.yaml#/~1openapi.yaml
+
+components:
+  securitySchemes:
+    bearer:
+      $ref: ./components/securitySchemes/bearer.yaml
+    cookie:
+      $ref: ./components/securitySchemes/cookie.yaml

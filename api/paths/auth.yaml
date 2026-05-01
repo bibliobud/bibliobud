@@ -1,0 +1,199 @@
+# Authentication endpoints. Local-only routes (signup, login, password
+# reset) return 404 in firebase mode; the firebase exchange route returns
+# 404 in local mode. See docs/api/authentication.md.
+
+/auth/signup:
+  post:
+    summary: Create a new account (local auth only)
+    operationId: authSignup
+    tags: [auth]
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email, username, password]
+            properties:
+              email:
+                type: string
+                format: email
+              username:
+                type: string
+                pattern: '^[a-z0-9_-]+$'
+                minLength: 3
+                maxLength: 32
+              password:
+                type: string
+                minLength: 12
+                maxLength: 256
+              display_name:
+                type: string
+                maxLength: 80
+    responses:
+      "201":
+        description: Account created. Session is established (cookie + body).
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Session.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "404":
+        description: Local signup is disabled on this instance (firebase mode).
+        content:
+          application/problem+json:
+            schema:
+              $ref: ../components/schemas/Problem.yaml
+      "409":
+        $ref: ../components/responses/Problem409.yaml
+      "429":
+        $ref: ../components/responses/Problem429.yaml
+
+/auth/login:
+  post:
+    summary: Exchange credentials for a session (local auth only)
+    operationId: authLogin
+    tags: [auth]
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [identifier, password]
+            properties:
+              identifier:
+                type: string
+                description: Email or username.
+              password:
+                type: string
+    responses:
+      "200":
+        description: Authentication succeeded.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Session.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        description: Local login is disabled on this instance (firebase mode).
+      "429":
+        $ref: ../components/responses/Problem429.yaml
+
+/auth/firebase/exchange:
+  post:
+    summary: Exchange a Firebase ID token for a BiblioBud session
+    description: |
+      Hosted-mode only. The client obtains a Firebase ID token via the
+      Firebase SDK, then exchanges it here for an opaque BiblioBud session
+      that is used for all subsequent requests. Firebase is not consulted
+      again until the next exchange.
+    operationId: authFirebaseExchange
+    tags: [auth]
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [id_token]
+            properties:
+              id_token:
+                type: string
+    responses:
+      "200":
+        description: Exchange succeeded.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Session.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        description: Firebase exchange is disabled on this instance (local mode).
+
+/auth/logout:
+  post:
+    summary: Revoke the current session
+    operationId: authLogout
+    tags: [auth]
+    responses:
+      "204":
+        description: Session revoked.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+
+/auth/password/reset/request:
+  post:
+    summary: Request a password-reset email (local auth only)
+    operationId: authPasswordResetRequest
+    tags: [auth]
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email]
+            properties:
+              email:
+                type: string
+                format: email
+    responses:
+      "204":
+        description: |
+          Always returns 204 regardless of whether the email exists, to
+          avoid leaking account presence.
+
+/auth/password/reset/confirm:
+  post:
+    summary: Consume a password-reset token (local auth only)
+    operationId: authPasswordResetConfirm
+    tags: [auth]
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [token, new_password]
+            properties:
+              token:
+                type: string
+              new_password:
+                type: string
+                minLength: 12
+                maxLength: 256
+    responses:
+      "204":
+        description: Password updated. Existing sessions are revoked.
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+
+/auth/me:
+  get:
+    summary: Current principal, plan, and capabilities
+    operationId: authMe
+    tags: [auth]
+    responses:
+      "200":
+        description: Authenticated principal.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user, plan]
+              properties:
+                user:
+                  $ref: ../components/schemas/User.yaml
+                plan:
+                  $ref: ../components/schemas/Plan.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml

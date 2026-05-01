@@ -1,0 +1,167 @@
+/copies:
+  get:
+    summary: List the user's owned copies
+    operationId: copiesList
+    tags: [copies]
+    parameters:
+      - name: isbn
+        in: query
+        description: Restrict to copies of a single book.
+        schema:
+          type: string
+      - $ref: ../components/parameters/Cursor.yaml
+      - $ref: ../components/parameters/Limit.yaml
+    responses:
+      "200":
+        description: Page of Copy entries.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: ../components/schemas/Pagination.yaml
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: ../components/schemas/Copy.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+
+  post:
+    summary: Add a physical copy
+    description: |
+      Creates a new Copy and ensures the user-book anchor exists. If the
+      ISBN is unknown the canonical Book is fetched lazily via the
+      provider chain.
+    operationId: copiesCreate
+    tags: [copies]
+    parameters:
+      - $ref: ../components/parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [isbn]
+            properties:
+              isbn:
+                type: string
+              condition:
+                type: string
+                enum: [new, good, fair, poor, unknown]
+                default: unknown
+              edition:
+                type: string
+              format:
+                type: string
+                enum: [hardcover, paperback, ebook, audiobook, other]
+                default: other
+              signed:
+                type: boolean
+                default: false
+              acquired_at:
+                type: string
+                format: date
+              notes:
+                type: string
+                maxLength: 2000
+    responses:
+      "201":
+        description: Copy created.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Copy.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+/copies/{id}:
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    summary: Get a copy
+    operationId: copiesGet
+    tags: [copies]
+    responses:
+      "200":
+        description: The copy.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Copy.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+  patch:
+    summary: Update a copy
+    operationId: copiesUpdate
+    tags: [copies]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              condition:
+                type: string
+                enum: [new, good, fair, poor, unknown]
+              edition:
+                type: string
+                nullable: true
+              format:
+                type: string
+                enum: [hardcover, paperback, ebook, audiobook, other]
+              signed:
+                type: boolean
+              acquired_at:
+                type: string
+                format: date
+                nullable: true
+              notes:
+                type: string
+                nullable: true
+                maxLength: 2000
+    responses:
+      "200":
+        description: Updated copy.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Copy.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+  delete:
+    summary: Soft-delete a copy
+    description: |
+      Removes the physical instance. The user-book anchor, its status,
+      tags, and shelf membership remain intact — losing the last copy
+      simply flips the derived `owned` flag to false.
+    operationId: copiesDelete
+    tags: [copies]
+    responses:
+      "204":
+        description: Copy removed.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml

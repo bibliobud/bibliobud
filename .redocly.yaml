@@ -1,0 +1,46 @@
+apis:
+  bibliobud@v1:
+    root: api/openapi.yaml
+
+extends:
+  - recommended
+
+rules:
+  # Operation IDs are how generated client functions are named — keep them
+  # consistent and unique. Non-negotiable.
+  operation-operationId-unique: error
+  operation-operationId: error
+
+  # Every operation must declare tags so docs render grouped properly.
+  operation-tag-defined: error
+
+  # Every operation needs a summary — short, human, scannable.
+  operation-summary: error
+
+  # Path params must be defined.
+  path-parameters-defined: error
+
+  # No ambiguous paths (e.g. /foo/{a} and /foo/{b}).
+  no-ambiguous-paths: error
+
+  # Each operation should declare what error responses are possible.
+  # Set to off — meta/health endpoints and a few unauthenticated GETs
+  # legitimately have no 4xx surface.
+  operation-4xx-response: off
+
+  # Spec info must include a description.
+  info-description: error
+
+  # Servers entry required.
+  no-empty-servers: error
+
+  # Examples should validate against schemas.
+  no-invalid-media-type-examples: warn
+
+  # localhost in servers is intentional for the self-host case.
+  no-server-example.com: off
+
+  # Don't allow $ref'd siblings — they're ignored by some tooling.
+  no-unresolved-refs: error
+
+decorators: {}

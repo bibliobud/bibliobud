@@ -1,0 +1,67 @@
+type: object
+description: |
+  RFC 7807 problem details with BiblioBud extensions.
+
+  The machine-readable contract is the `code` field — clients MUST switch on
+  `code`, never on `title` (which is intended for humans and may change).
+  See docs/api/errors.md for the full code catalog.
+required: [type, title, status, code]
+properties:
+  type:
+    type: string
+    format: uri
+    description: A URI reference identifying the problem class.
+    example: https://bibliobud.com/errors/entitlement-required
+  title:
+    type: string
+    description: A short, human-readable summary. May change across versions.
+    example: Entitlement required
+  status:
+    type: integer
+    description: HTTP status code.
+    example: 402
+  detail:
+    type: string
+    description: Human-readable explanation specific to this occurrence.
+    example: This endpoint requires the `analytics` capability.
+  instance:
+    type: string
+    format: uri
+    description: A URI reference identifying the specific occurrence.
+  code:
+    $ref: ./ErrorCodes.yaml
+  capability:
+    type: string
+    description: |
+      Present when `code = "entitlement.required"`. Names the capability
+      the user lacks.
+    example: analytics
+  field:
+    type: string
+    description: |
+      Present when `code = "validation.failed"` for single-field errors.
+      Names the offending field in dot notation.
+    example: rating
+  errors:
+    type: array
+    description: |
+      Present when `code = "validation.failed"` for multi-field errors.
+    items:
+      type: object
+      required: [field, code]
+      properties:
+        field:
+          type: string
+          example: rating
+        code:
+          type: string
+          example: validation.out_of_range
+        detail:
+          type: string
+          example: rating must be between 1 and 5
+  retry_after:
+    type: integer
+    description: |
+      Present on 429 responses. Seconds the client should wait before
+      retrying. Mirrors the `Retry-After` header.
+    example: 30

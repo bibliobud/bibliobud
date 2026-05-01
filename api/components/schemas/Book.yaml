@@ -1,0 +1,72 @@
+type: object
+description: |
+  Canonical book metadata. One row per ISBN, shared across all users in
+  an instance. Populated lazily from third-party providers (Open Library,
+  ISBNdb) on first lookup.
+required: [id, isbn_13, title, authors, source, fetched_at]
+properties:
+  id:
+    type: string
+    format: uuid
+    readOnly: true
+  isbn_13:
+    type: string
+    pattern: '^[0-9]{13}$'
+    example: "9780441013593"
+  isbn_10:
+    type: string
+    nullable: true
+    pattern: '^[0-9Xx]{10}$'
+    example: "0441013597"
+  title:
+    type: string
+    example: Dune
+  subtitle:
+    type: string
+    nullable: true
+  authors:
+    type: array
+    items:
+      type: string
+    example: ["Frank Herbert"]
+  publisher:
+    type: string
+    nullable: true
+  published_date:
+    type: string
+    nullable: true
+    description: ISO 8601 date or partial date (YYYY, YYYY-MM, YYYY-MM-DD).
+    example: "1965-08-01"
+  page_count:
+    type: integer
+    nullable: true
+    minimum: 1
+  language:
+    type: string
+    nullable: true
+    description: BCP-47 language tag.
+    example: en
+  cover_url:
+    type: string
+    format: uri
+    nullable: true
+  description:
+    type: string
+    nullable: true
+  source:
+    type: string
+    enum: [open_library, isbndb, manual, imported]
+    readOnly: true
+    description: |
+      Where this row's metadata came from. `manual` rows are user-created
+      and (on hosted instances) scoped to the creating user.
+  source_id:
+    type: string
+    nullable: true
+    readOnly: true
+    description: Provider's stable identifier (e.g. an Open Library work key).
+  fetched_at:
+    type: string
+    format: date-time
+    readOnly: true
+    description: When metadata was last successfully fetched from `source`.

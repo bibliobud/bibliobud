@@ -1,0 +1,10 @@
+name: isbn
+in: path
+required: true
+description: |
+  ISBN-13 (preferred) or ISBN-10. The server normalizes ISBN-10 to
+  ISBN-13 internally; both forms route to the same canonical Book.
+schema:
+  type: string
+  pattern: '^([0-9]{13}|[0-9]{9}[0-9Xx])$'
+example: "9780441013593"

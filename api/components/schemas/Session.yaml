@@ -1,0 +1,18 @@
+type: object
+description: |
+  Authentication session. The opaque `token` is presented as either a
+  `Bearer` Authorization header or the `bb_session` cookie — same token,
+  two transports. Tokens are revocable; logout deletes the row.
+required: [token, expires_at]
+properties:
+  token:
+    type: string
+    description: |
+      Opaque session token. Treat as a credential — never log it. The
+      server stores a hash, not the token itself.
+    example: bb_sk_live_zQ8v3y6F2nXk9pT4mLrB7uY1cAa5sH0d
+  expires_at:
+    type: string
+    format: date-time
+  user:
+    $ref: ./User.yaml

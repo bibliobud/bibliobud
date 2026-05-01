@@ -1,0 +1,70 @@
+type: object
+description: |
+  The user's relationship to a book — reading status, rating, dates, notes.
+  One row per `(user, book)`. Auto-created the first time the user touches
+  a book in any way (adds to a shelf, buys a copy, assigns a tag).
+
+  Note: ownership is NOT a status. Whether the user owns the book is
+  derived from the existence of `Copy` rows; see the `owned` field.
+required: [book, owned, copy_count, tags, shelves]
+properties:
+  book:
+    $ref: ./Book.yaml
+  status:
+    type: string
+    nullable: true
+    enum: [wanted, reading, read, dnf]
+    description: |
+      Reading status. `null` means tracked but no explicit status
+      (e.g. a book on a "Sci-Fi" shelf with no read-state set).
+  rating:
+    type: integer
+    nullable: true
+    minimum: 1
+    maximum: 5
+  started_at:
+    type: string
+    format: date
+    nullable: true
+  finished_at:
+    type: string
+    format: date
+    nullable: true
+  notes:
+    type: string
+    nullable: true
+    maxLength: 10000
+  owned:
+    type: boolean
+    readOnly: true
+    description: |
+      True iff the user has at least one non-deleted `Copy` of this book.
+  copy_count:
+    type: integer
+    readOnly: true
+    description: Number of non-deleted Copy rows the user holds for this book.
+  tags:
+    type: array
+    description: Tags the user has assigned to this book.
+    items:
+      $ref: ./Tag.yaml
+  shelves:
+    type: array
+    description: Bookshelves this book appears on for the user.
+    items:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+  created_at:
+    type: string
+    format: date-time
+    readOnly: true
+  updated_at:
+    type: string
+    format: date-time
+    readOnly: true

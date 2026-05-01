@@ -1,0 +1,237 @@
+/bookshelves:
+  get:
+    summary: List the user's bookshelves
+    operationId: bookshelvesList
+    tags: [bookshelves]
+    parameters:
+      - $ref: ../components/parameters/Cursor.yaml
+      - $ref: ../components/parameters/Limit.yaml
+    responses:
+      "200":
+        description: Page of Bookshelf entries.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: ../components/schemas/Pagination.yaml
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: ../components/schemas/Bookshelf.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+
+  post:
+    summary: Create a bookshelf
+    operationId: bookshelvesCreate
+    tags: [bookshelves]
+    parameters:
+      - $ref: ../components/parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 80
+              description:
+                type: string
+                maxLength: 1000
+              sort_order:
+                type: integer
+    responses:
+      "201":
+        description: Bookshelf created.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Bookshelf.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "402":
+        $ref: ../components/responses/Problem402.yaml
+      "409":
+        $ref: ../components/responses/Problem409.yaml
+
+/bookshelves/{id}:
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    summary: Get a bookshelf
+    operationId: bookshelvesGet
+    tags: [bookshelves]
+    responses:
+      "200":
+        description: The bookshelf.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Bookshelf.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+  patch:
+    summary: Update a bookshelf
+    operationId: bookshelvesUpdate
+    tags: [bookshelves]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 80
+              description:
+                type: string
+                nullable: true
+                maxLength: 1000
+              sort_order:
+                type: integer
+    responses:
+      "200":
+        description: Updated bookshelf.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Bookshelf.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+      "409":
+        $ref: ../components/responses/Problem409.yaml
+
+  delete:
+    summary: Soft-delete a bookshelf
+    description: |
+      Removes the shelf. Books on the shelf are not affected — they
+      remain on other shelves and retain their UserBook anchor, tags,
+      and copies.
+    operationId: bookshelvesDelete
+    tags: [bookshelves]
+    responses:
+      "204":
+        description: Bookshelf removed.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+/bookshelves/{id}/items:
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    summary: List books on a shelf
+    operationId: bookshelvesListItems
+    tags: [bookshelves]
+    parameters:
+      - $ref: ../components/parameters/Cursor.yaml
+      - $ref: ../components/parameters/Limit.yaml
+    responses:
+      "200":
+        description: Page of BookshelfItem entries.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: ../components/schemas/Pagination.yaml
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: ../components/schemas/BookshelfItem.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+  post:
+    summary: Add a book to a shelf
+    description: |
+      Creates a shelf membership for the given ISBN. The canonical Book
+      and the UserBook anchor are created lazily if they don't yet exist.
+    operationId: bookshelvesAddItem
+    tags: [bookshelves]
+    parameters:
+      - $ref: ../components/parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [isbn]
+            properties:
+              isbn:
+                type: string
+    responses:
+      "201":
+        description: Book added.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/BookshelfItem.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+      "409":
+        description: Book is already on this shelf.
+        content:
+          application/problem+json:
+            schema:
+              $ref: ../components/schemas/Problem.yaml
+
+/bookshelves/{id}/items/{isbn}:
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    - $ref: ../components/parameters/ISBN.yaml
+
+  delete:
+    summary: Remove a book from a shelf
+    operationId: bookshelvesRemoveItem
+    tags: [bookshelves]
+    responses:
+      "204":
+        description: Book removed from shelf.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml

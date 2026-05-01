@@ -1,0 +1,111 @@
+# Canonical book endpoints. Books are deduplicated by ISBN-13 across all
+# users on the instance. Metadata is fetched lazily from configured
+# providers (Open Library, ISBNdb) on first lookup. See
+# docs/architecture/book-metadata-sourcing.md.
+
+/books/{isbn}:
+  get:
+    summary: Get canonical metadata for an ISBN
+    description: |
+      Cache-first. On a local cache miss, walks the configured provider
+      chain in order; the first non-error result is persisted and
+      returned. Books older than 30 days are async-refreshed in the
+      background. ISBNs that no provider knows are negative-cached for
+      24 hours to protect upstream APIs.
+    operationId: booksGetByISBN
+    tags: [books]
+    parameters:
+      - $ref: ../components/parameters/ISBN.yaml
+    responses:
+      "200":
+        description: Book found.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Book.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+      "503":
+        description: |
+          All providers unavailable and book not in cache. Retry later;
+          the book row is NOT created.
+        content:
+          application/problem+json:
+            schema:
+              $ref: ../components/schemas/Problem.yaml
+
+/books/search:
+  get:
+    summary: Search books
+    description: |
+      Local full-text index first. If results fall below a threshold (or
+      `?fresh=true` is set), the server fans out to providers in parallel
+      and merges results, persisting new books asynchronously.
+    operationId: booksSearch
+    tags: [books]
+    parameters:
+      - name: q
+        in: query
+        description: Free-text query (matched against title + authors).
+        schema:
+          type: string
+      - name: author
+        in: query
+        schema:
+          type: string
+      - name: isbn
+        in: query
+        description: Convenience — equivalent to GET /books/{isbn}.
+        schema:
+          type: string
+      - name: fresh
+        in: query
+        description: Force provider fanout even if local results suffice.
+        schema:
+          type: boolean
+          default: false
+      - $ref: ../components/parameters/Cursor.yaml
+      - $ref: ../components/parameters/Limit.yaml
+    responses:
+      "200":
+        description: Page of search hits.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: ../components/schemas/Pagination.yaml
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: ../components/schemas/Book.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "429":
+        $ref: ../components/responses/Problem429.yaml
+
+/books/refresh/{isbn}:
+  post:
+    summary: Force a metadata re-fetch
+    description: |
+      Bypasses the cache and the negative cache. Capability-gated:
+      `metadata_refresh`. Free for self-host; rate-limited per user
+      on hosted.
+    operationId: booksRefresh
+    tags: [books]
+    parameters:
+      - $ref: ../components/parameters/ISBN.yaml
+    responses:
+      "200":
+        description: Refreshed book.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Book.yaml
+      "402":
+        $ref: ../components/responses/Problem402.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+      "429":
+        $ref: ../components/responses/Problem429.yaml

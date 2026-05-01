@@ -1,0 +1,10 @@
+description: Resource not found.
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    example:
+      type: https://bibliobud.com/errors/resource-not-found
+      title: Not found
+      status: 404
+      code: resource.not_found

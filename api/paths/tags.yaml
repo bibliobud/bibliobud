@@ -1,0 +1,215 @@
+/tags:
+  get:
+    summary: List the user's tags
+    operationId: tagsList
+    tags: [tags]
+    parameters:
+      - $ref: ../components/parameters/Cursor.yaml
+      - $ref: ../components/parameters/Limit.yaml
+    responses:
+      "200":
+        description: Page of Tag entries with usage counts.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: ../components/schemas/Pagination.yaml
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: ../components/schemas/Tag.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+
+  post:
+    summary: Create a tag
+    operationId: tagsCreate
+    tags: [tags]
+    parameters:
+      - $ref: ../components/parameters/IdempotencyKey.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 64
+              color:
+                type: string
+                pattern: '^#[0-9A-Fa-f]{6}$'
+    responses:
+      "201":
+        description: Tag created.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Tag.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "409":
+        $ref: ../components/responses/Problem409.yaml
+
+/tags/{id}:
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  patch:
+    summary: Update a tag
+    operationId: tagsUpdate
+    tags: [tags]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                minLength: 1
+                maxLength: 64
+              color:
+                type: string
+                nullable: true
+                pattern: '^#[0-9A-Fa-f]{6}$'
+    responses:
+      "200":
+        description: Updated tag.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/Tag.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+      "409":
+        $ref: ../components/responses/Problem409.yaml
+
+  delete:
+    summary: Delete a tag
+    description: |
+      Removes the tag and all of its assignments. Books that were tagged
+      with it are otherwise unaffected.
+    operationId: tagsDelete
+    tags: [tags]
+    responses:
+      "204":
+        description: Tag removed.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+/tags/{id}/books:
+  parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    summary: Books sharing this tag
+    description: |
+      Cross-cutting query. Returns every book the user has tagged with
+      this tag, regardless of shelf membership or reading status. This
+      is the "show me everything tagged 'Gift for Julie'" view.
+    operationId: tagsListBooks
+    tags: [tags]
+    parameters:
+      - $ref: ../components/parameters/Cursor.yaml
+      - $ref: ../components/parameters/Limit.yaml
+    responses:
+      "200":
+        description: Page of UserBook entries.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: ../components/schemas/Pagination.yaml
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: ../components/schemas/UserBook.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+/library/{isbn}/tags:
+  parameters:
+    - $ref: ../components/parameters/ISBN.yaml
+
+  post:
+    summary: Assign a tag to a book
+    description: |
+      Auto-creates the user-book anchor if needed. Idempotent: assigning
+      a tag the book already has returns 200 with no side effects.
+    operationId: libraryAssignTag
+    tags: [tags]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [tag_id]
+            properties:
+              tag_id:
+                type: string
+                format: uuid
+    responses:
+      "200":
+        description: Tag assigned (or already present).
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/UserBook.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+/library/{isbn}/tags/{tag_id}:
+  parameters:
+    - $ref: ../components/parameters/ISBN.yaml
+    - name: tag_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  delete:
+    summary: Remove a tag assignment
+    operationId: libraryRemoveTag
+    tags: [tags]
+    responses:
+      "204":
+        description: Tag removed from this book.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml

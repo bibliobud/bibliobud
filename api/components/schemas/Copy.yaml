@@ -1,0 +1,46 @@
+type: object
+description: |
+  A user's physical (or digital) instance of a book. Distinct from the
+  user-book relationship: a user may own zero, one, or many copies of
+  the same book, each with its own condition, edition, and provenance.
+  Deleting a copy preserves the user-book anchor, tags, and shelf
+  membership — only the physical instance is removed.
+required: [id, book, condition, format, signed]
+properties:
+  id:
+    type: string
+    format: uuid
+    readOnly: true
+  book:
+    $ref: ./Book.yaml
+  condition:
+    type: string
+    enum: [new, good, fair, poor, unknown]
+    default: unknown
+  edition:
+    type: string
+    nullable: true
+    description: Free-form edition label (e.g. "First UK paperback, 1966").
+  format:
+    type: string
+    enum: [hardcover, paperback, ebook, audiobook, other]
+    default: other
+  signed:
+    type: boolean
+    default: false
+  acquired_at:
+    type: string
+    format: date
+    nullable: true
+  notes:
+    type: string
+    nullable: true
+    maxLength: 2000
+  created_at:
+    type: string
+    format: date-time
+    readOnly: true
+  updated_at:
+    type: string
+    format: date-time
+    readOnly: true

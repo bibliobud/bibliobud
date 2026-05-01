@@ -1,0 +1,85 @@
+type: object
+description: |
+  An asynchronous user-data import job. Created by `POST /imports`,
+  polled via `GET /imports/{job_id}`. See docs/architecture/user-data-import.md
+  for the full state machine and idempotency guarantees.
+required: [id, source, status, created_at]
+properties:
+  id:
+    type: string
+    format: uuid
+    readOnly: true
+  source:
+    type: string
+    enum: [goodreads, storygraph, librarything, bibliobud, generic]
+    description: |
+      The detected or user-specified source format. Auto-detection runs
+      when the request omits `?source=` or sets it to `auto`.
+  status:
+    type: string
+    enum: [queued, running, succeeded, partial_success, failed, canceled]
+    description: |
+      `partial_success` is the common terminal state — at least some rows
+      imported, others failed (typically unmatched ISBNs). `failed`
+      means no rows were imported.
+  progress:
+    type: object
+    nullable: true
+    description: Present while running and on terminal states.
+    properties:
+      processed:
+        type: integer
+      total:
+        type: integer
+        nullable: true
+        description: Null until the parser has counted rows.
+      imported:
+        type: integer
+      skipped:
+        type: integer
+      failed:
+        type: integer
+      books_fetched_from_provider:
+        type: integer
+        description: |
+          New canonical Book rows created during this import (lazy
+          provider hits). Indicates how much upstream traffic the
+          import generated.
+  errors_preview:
+    type: array
+    description: |
+      First N row-level errors. Capped at 100 items; full error list is
+      available via `GET /imports/{job_id}/errors`.
+    items:
+      type: object
+      required: [row, code, detail]
+      properties:
+        row:
+          type: integer
+        code:
+          type: string
+          example: book.not_found
+        detail:
+          type: string
+        isbn:
+          type: string
+          nullable: true
+        title:
+          type: string
+          nullable: true
+  errors_url:
+    type: string
+    format: uri
+    nullable: true
+    description: |
+      URL to download the full per-row error report as CSV. Null while
+      running and when no errors occurred.
+  created_at:
+    type: string
+    format: date-time
+    readOnly: true
+  completed_at:
+    type: string
+    format: date-time
+    nullable: true
+    readOnly: true

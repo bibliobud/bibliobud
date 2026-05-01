@@ -1,0 +1,13 @@
+name: Idempotency-Key
+in: header
+required: false
+description: |
+  Client-generated idempotency key (UUIDv4 recommended). When provided,
+  the server caches the response for 24 hours and returns the cached
+  result on retries with the same key + same request body. See
+  docs/api/idempotency.md for the full contract.
+schema:
+  type: string
+  minLength: 8
+  maxLength: 128
+example: 7d2f8a3c-9b1e-4f6a-8c5d-2e3f4b5a6c7d

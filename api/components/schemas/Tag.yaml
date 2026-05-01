@@ -1,0 +1,32 @@
+type: object
+description: |
+  A per-user, cross-cutting label applied to the user-book relationship.
+  Tags are independent of shelves: the same book can have many tags and
+  appear on many shelves. Tag names are unique within a user's account.
+
+  Examples: "audiobook", "Gift for Julie", "lent to Mom", "to-buy-physical".
+required: [id, name, usage_count]
+properties:
+  id:
+    type: string
+    format: uuid
+    readOnly: true
+  name:
+    type: string
+    minLength: 1
+    maxLength: 64
+    example: Gift for Julie
+  color:
+    type: string
+    nullable: true
+    pattern: '^#[0-9A-Fa-f]{6}$'
+    description: Optional hex color the UI may use to render the tag.
+    example: "#a855f7"
+  usage_count:
+    type: integer
+    readOnly: true
+    description: Number of books currently tagged with this tag.
+  created_at:
+    type: string
+    format: date-time
+    readOnly: true

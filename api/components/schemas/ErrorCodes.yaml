@@ -1,0 +1,73 @@
+type: string
+description: |
+  Stable, machine-readable error code. This is the contract clients
+  switch on. New codes may be added; existing codes will not be removed
+  or repurposed without a major version bump. See docs/api/errors.md
+  for the full catalog and remediation guidance.
+enum:
+  # Auth (401, 403)
+  - auth.required
+  - auth.invalid_credentials
+  - auth.session_expired
+  - auth.session_revoked
+  - auth.forbidden
+  - auth.signup_disabled
+  - auth.email_taken
+  - auth.username_taken
+  - auth.password_reset_invalid
+  - auth.firebase_token_invalid
+
+  # Validation (400, 422)
+  - validation.failed
+  - validation.required
+  - validation.out_of_range
+  - validation.invalid_format
+  - validation.too_long
+  - validation.too_short
+
+  # Resource (404, 409, 410)
+  - resource.not_found
+  - resource.gone
+  - resource.conflict
+  - resource.duplicate
+
+  # Books / metadata
+  - book.isbn_invalid
+  - book.not_found
+  - book.provider_unavailable
+  - book.refresh_unavailable
+
+  # Library / copies / shelves / tags
+  - library.anchor_not_found
+  - copy.not_found
+  - bookshelf.name_taken
+  - bookshelf.not_found
+  - tag.name_taken
+  - tag.not_found
+
+  # Reviews
+  - review.already_exists
+  - review.not_found
+
+  # Imports
+  - import.source_unrecognized
+  - import.file_too_large
+  - import.parse_failed
+  - import.job_not_found
+  - import.job_not_cancellable
+
+  # Entitlements
+  - entitlement.required
+  - entitlement.quota_exceeded
+
+  # Rate limiting
+  - rate_limit.exceeded
+
+  # Idempotency
+  - idempotency.key_reused
+
+  # Server
+  - server.internal
+  - server.unavailable
+  - server.dependency_unavailable
+example: entitlement.required

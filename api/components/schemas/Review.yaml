@@ -1,0 +1,48 @@
+type: object
+description: |
+  A user's written review of a book. At most one non-deleted review per
+  `(user, book)`. Visibility controls whether the review surfaces in the
+  public review feed for the book.
+required: [id, book_isbn_13, body, visibility, created_at]
+properties:
+  id:
+    type: string
+    format: uuid
+    readOnly: true
+  book_isbn_13:
+    type: string
+    pattern: '^[0-9]{13}$'
+  author:
+    type: object
+    readOnly: true
+    description: |
+      Public profile of the review author. Only present on public reviews
+      and on the author's own private reviews.
+    required: [username]
+    properties:
+      username:
+        type: string
+      display_name:
+        type: string
+        nullable: true
+  body:
+    type: string
+    minLength: 1
+    maxLength: 20000
+  rating:
+    type: integer
+    nullable: true
+    minimum: 1
+    maximum: 5
+  visibility:
+    type: string
+    enum: [private, public]
+    default: private
+  created_at:
+    type: string
+    format: date-time
+    readOnly: true
+  updated_at:
+    type: string
+    format: date-time
+    readOnly: true

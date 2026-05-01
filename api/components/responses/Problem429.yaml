@@ -1,0 +1,19 @@
+description: |
+  Too many requests. The `Retry-After` header and the `retry_after`
+  field in the response body both indicate how many seconds to wait
+  before retrying.
+headers:
+  Retry-After:
+    description: Seconds to wait before retrying.
+    schema:
+      type: integer
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    example:
+      type: https://bibliobud.com/errors/rate-limit-exceeded
+      title: Too many requests
+      status: 429
+      code: rate_limit.exceeded
+      retry_after: 30

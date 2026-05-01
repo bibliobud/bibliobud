@@ -1,0 +1,9 @@
+name: cursor
+in: query
+required: false
+description: |
+  Opaque pagination cursor returned as `next_cursor` from a previous
+  page. Omit to fetch the first page. See docs/api/pagination.md.
+schema:
+  type: string
+example: eyJpZCI6IjAxSE5RTjVZMFowS01YIiwidHMiOjE3MTU2OTQ4MDB9

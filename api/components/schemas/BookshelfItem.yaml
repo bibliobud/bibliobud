@@ -1,0 +1,12 @@
+type: object
+description: |
+  Membership of a book on a shelf. Books are referenced by ISBN; the
+  underlying canonical Book row is created lazily if not yet known.
+required: [book, added_at]
+properties:
+  book:
+    $ref: ./Book.yaml
+  added_at:
+    type: string
+    format: date-time
+    readOnly: true

@@ -1,0 +1,12 @@
+description: Bad request — malformed input or failed validation.
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    example:
+      type: https://bibliobud.com/errors/validation-failed
+      title: Validation failed
+      status: 400
+      code: validation.failed
+      detail: rating must be between 1 and 5
+      field: rating

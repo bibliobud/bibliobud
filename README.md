@@ -1,6 +1,6 @@
 # BiblioBud
 
-A self-hostable book tracking app. Scan barcodes, organize your library, import from GoodReads. Built with Go, HTMX, and PostgreSQL.
+A self-hostable book tracking app. Scan barcodes, organize your library, import from GoodReads. Built with Go, HTMX, and SQLite or PostgreSQL.
 
 **Status: Early development.** Core features are being built. 
 
@@ -16,7 +16,12 @@ BiblioBud is an open source alternative to GoodReads that you can host yourself 
 
 ## Tech stack
 
-Go · [Chi](https://github.com/go-chi/chi) · [Templ](https://templ.guide/) · [HTMX](https://htmx.org/) · [Alpine.js](https://alpinejs.dev/) · [Tailwind CSS](https://tailwindcss.com/) · PostgreSQL · [sqlc](https://sqlc.dev/) · Caddy
+Go (`net/http` ServeMux, no router framework) · [Templ](https://templ.guide/) · [HTMX](https://htmx.org/) · [Alpine.js](https://alpinejs.dev/) · [Tailwind CSS](https://tailwindcss.com/) · SQLite or PostgreSQL · [sqlc](https://sqlc.dev/) · Caddy
+
+## Documentation
+
+- [`docs/`](docs/) — user, operator, integrator, and contributor docs.
+- [`api/`](api/) — OpenAPI 3.0.3 source for the public JSON API.
 
 ## License
 

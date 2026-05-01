@@ -1,0 +1,110 @@
+/users/me:
+  get:
+    summary: Get the authenticated user
+    operationId: usersGetMe
+    tags: [users]
+    responses:
+      "200":
+        description: The authenticated user (includes email).
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/User.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+
+  patch:
+    summary: Update the authenticated user's profile
+    operationId: usersUpdateMe
+    tags: [users]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              display_name:
+                type: string
+                nullable: true
+                maxLength: 80
+              public_profile:
+                type: boolean
+              email:
+                type: string
+                format: email
+                description: Local mode only; ignored in firebase mode.
+    responses:
+      "200":
+        description: Updated user.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/User.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "409":
+        $ref: ../components/responses/Problem409.yaml
+
+  delete:
+    summary: Soft-delete the authenticated user
+    description: |
+      Marks the account for deletion and revokes all sessions. Data is
+      hard-purged 30 days later. Within the retention window, signup
+      with the same email/username is rejected (`auth.email_taken` /
+      `auth.username_taken`).
+    operationId: usersDeleteMe
+    tags: [users]
+    responses:
+      "204":
+        description: Account marked for deletion.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+
+/users/me/export:
+  get:
+    summary: Download a full data export (GDPR)
+    description: |
+      Streams a JSON archive of every record associated with the
+      authenticated user — books they've tracked, copies, shelves,
+      tags, reviews, follows, import history. The format round-trips
+      through `POST /imports?source=bibliobud`. Self-host parity:
+      identical on hosted and self-host.
+    operationId: usersExportMe
+    tags: [users]
+    responses:
+      "200":
+        description: JSON export.
+        content:
+          application/json:
+            schema:
+              type: object
+              description: Full BiblioBud user export.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "429":
+        $ref: ../components/responses/Problem429.yaml
+
+/users/{username}:
+  get:
+    summary: Public profile by username
+    operationId: usersGetByUsername
+    tags: [users]
+    security: []
+    parameters:
+      - name: username
+        in: path
+        required: true
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Public profile (only when the user has opted in).
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/User.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml

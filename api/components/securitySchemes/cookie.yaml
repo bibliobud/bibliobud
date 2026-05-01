@@ -1,0 +1,8 @@
+type: apiKey
+in: cookie
+name: bb_session
+description: |
+  Browser session cookie. Set automatically by the auth endpoints when
+  the request originates from a browser (presence of `Origin` header).
+  Carries the same opaque token as the `Bearer` scheme. Marked
+  `HttpOnly`, `Secure`, `SameSite=Lax`.

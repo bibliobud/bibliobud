@@ -1,0 +1,27 @@
+type: object
+description: |
+  Standard pagination envelope. Returned by every collection endpoint.
+  Clients pass `next_cursor` back as the `cursor` query parameter to
+  fetch the next page. When `next_cursor` is null the client has reached
+  the end of the result set.
+
+  Cursor strings are opaque, base64-encoded server state — clients MUST
+  NOT parse them. They expire if the server's pagination scheme changes
+  (treat as session-scoped).
+required: [data, next_cursor]
+properties:
+  data:
+    type: array
+    items: {}
+    description: The page of items. Schema varies per endpoint.
+  next_cursor:
+    type: string
+    nullable: true
+    description: Cursor to fetch the next page, or null at the end.
+    example: eyJpZCI6IjAxSE5RTjVZMFowS01YIiwidHMiOjE3MTU2OTQ4MDB9
+  total_estimate:
+    type: integer
+    nullable: true
+    description: |
+      Best-effort total count, when cheap to compute. Not all endpoints
+      provide this. Treat as approximate; do not derive page count from it.

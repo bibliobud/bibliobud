@@ -1,0 +1,70 @@
+/healthz:
+  get:
+    summary: Liveness probe
+    description: Returns 200 as long as the process is running.
+    operationId: metaHealthz
+    tags: [meta]
+    security: []
+    responses:
+      "200":
+        description: Process is up.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: ok
+
+/readyz:
+  get:
+    summary: Readiness probe
+    description: |
+      Returns 200 only when all critical dependencies are reachable
+      (database ping, auth provider). Returns 503 otherwise.
+    operationId: metaReadyz
+    tags: [meta]
+    security: []
+    responses:
+      "200":
+        description: Ready to serve traffic.
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: ready
+                checks:
+                  type: object
+                  additionalProperties:
+                    type: string
+      "503":
+        description: Not ready.
+        content:
+          application/problem+json:
+            schema:
+              $ref: ../components/schemas/Problem.yaml
+
+/openapi.yaml:
+  get:
+    summary: Serve the bundled OpenAPI specification
+    description: |
+      Returns the bundled OpenAPI 3.0 spec for this server. This is the
+      same artifact that ships with the binary; clients can use it for
+      code generation against the running instance.
+    operationId: metaOpenAPI
+    tags: [meta]
+    security: []
+    responses:
+      "200":
+        description: OpenAPI spec.
+        content:
+          application/yaml:
+            schema:
+              type: string
+          application/json:
+            schema:
+              type: object

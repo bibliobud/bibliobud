@@ -1,0 +1,165 @@
+/imports/sources:
+  get:
+    summary: List supported import sources
+    description: |
+      Returns the names of supported source formats and a URL to each
+      format's user-facing documentation. Useful for clients to render a
+      "where are you migrating from?" picker.
+    operationId: importsListSources
+    tags: [imports]
+    security:
+      - bearer: []
+      - cookie: []
+      - {}
+    responses:
+      "200":
+        description: List of supported sources.
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sources]
+              properties:
+                sources:
+                  type: array
+                  items:
+                    type: object
+                    required: [id, name, docs_url]
+                    properties:
+                      id:
+                        type: string
+                        example: goodreads
+                      name:
+                        type: string
+                        example: GoodReads
+                      docs_url:
+                        type: string
+                        format: uri
+                      auto_detect:
+                        type: boolean
+                        description: Whether the source's format can be auto-detected.
+
+/imports:
+  post:
+    summary: Upload a data import
+    description: |
+      Multipart upload of an export file. If `?source=auto` (or omitted)
+      the server sniffs the file header to pick the importer. The
+      response is 202 Accepted with the job descriptor — poll
+      `GET /imports/{job_id}` for progress and final results.
+    operationId: importsCreate
+    tags: [imports]
+    parameters:
+      - name: source
+        in: query
+        schema:
+          type: string
+          enum: [auto, goodreads, storygraph, librarything, bibliobud, generic]
+          default: auto
+      - name: duplicate_copies
+        in: query
+        description: |
+          When true, re-imports create new Copy rows even if a previous
+          import already created copies. Default is idempotent (no
+          duplicate copies on re-upload).
+        schema:
+          type: boolean
+          default: false
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [file]
+            properties:
+              file:
+                type: string
+                format: binary
+    responses:
+      "202":
+        description: Job accepted.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ImportJob.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "402":
+        $ref: ../components/responses/Problem402.yaml
+      "413":
+        description: |
+          File exceeds the size limit for this user's plan
+          (`import.file_too_large`). Hosted free tier has a smaller
+          limit; the `large_imports` capability lifts it.
+        content:
+          application/problem+json:
+            schema:
+              $ref: ../components/schemas/Problem.yaml
+
+/imports/{job_id}:
+  parameters:
+    - name: job_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    summary: Poll an import job
+    operationId: importsGet
+    tags: [imports]
+    responses:
+      "200":
+        description: Job status with progress and error preview.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ImportJob.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+  delete:
+    summary: Cancel or tombstone an import job
+    description: |
+      Queued or running jobs are canceled. Completed jobs are tombstoned
+      (the row remains for audit but the error CSV is purged).
+    operationId: importsDelete
+    tags: [imports]
+    responses:
+      "204":
+        description: Job canceled or tombstoned.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+/imports/{job_id}/errors:
+  parameters:
+    - name: job_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  get:
+    summary: Download the full per-row error report
+    operationId: importsDownloadErrors
+    tags: [imports]
+    responses:
+      "200":
+        description: CSV of every row that failed to import.
+        content:
+          text/csv:
+            schema:
+              type: string
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml

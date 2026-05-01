@@ -47,3 +47,9 @@ Thumbs.db
 # Database dumps
 *.sql.gz
 *.dump
+
+# Generated OpenAPI bundle (regenerate via `make api-bundle`)
+/api/openapi.bundled.yaml
+
+# Generated Go types from OpenAPI
+/internal/httpapi/gen/

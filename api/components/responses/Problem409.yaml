@@ -1,0 +1,13 @@
+description: |
+  Conflict — the request collides with existing state (e.g. duplicate
+  unique field, attempting to create a second review for the same book).
+content:
+  application/problem+json:
+    schema:
+      $ref: ../schemas/Problem.yaml
+    example:
+      type: https://bibliobud.com/errors/resource-conflict
+      title: Conflict
+      status: 409
+      code: bookshelf.name_taken
+      detail: A bookshelf named "Sci-Fi" already exists.

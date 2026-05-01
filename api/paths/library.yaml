@@ -1,0 +1,158 @@
+# The user's library — the (user, book) anchor view.
+# Reading status, rating, dates, notes, plus the related copies, tags,
+# and shelf membership for a book.
+
+/library:
+  get:
+    summary: List the user's tracked books
+    description: |
+      Returns every book the user has any relationship with — explicit
+      status set, owned copies, shelf memberships, or tag assignments.
+      Filters compose with AND semantics.
+    operationId: libraryList
+    tags: [library]
+    parameters:
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum: [wanted, reading, read, dnf, none]
+        description: |
+          Filter by reading status. `none` matches books with a NULL
+          status (typically only on a shelf or tag).
+      - name: tag
+        in: query
+        description: Tag id; repeatable for AND filtering.
+        schema:
+          type: array
+          items:
+            type: string
+            format: uuid
+        style: form
+        explode: true
+      - name: shelf
+        in: query
+        description: Bookshelf id.
+        schema:
+          type: string
+          format: uuid
+      - name: owned
+        in: query
+        schema:
+          type: boolean
+        description: Restrict to books with at least one Copy (true) or none (false).
+      - name: q
+        in: query
+        description: Free-text search within the user's library.
+        schema:
+          type: string
+      - $ref: ../components/parameters/Cursor.yaml
+      - $ref: ../components/parameters/Limit.yaml
+    responses:
+      "200":
+        description: Page of UserBook entries.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: ../components/schemas/Pagination.yaml
+                - type: object
+                  properties:
+                    data:
+                      type: array
+                      items:
+                        $ref: ../components/schemas/UserBook.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+
+/library/{isbn}:
+  parameters:
+    - $ref: ../components/parameters/ISBN.yaml
+
+  get:
+    summary: Get the user's relationship with one book
+    operationId: libraryGet
+    tags: [library]
+    responses:
+      "200":
+        description: UserBook anchor with copies, tags, and shelf memberships.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/UserBook.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+  put:
+    summary: Upsert the user's relationship with a book
+    description: |
+      Creates the anchor row if it does not exist, or updates it if it
+      does. Triggers a lazy lookup of the canonical Book if the ISBN is
+      unknown — a 404 here means the providers also don't know it.
+    operationId: libraryUpsert
+    tags: [library]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+                nullable: true
+                enum: [wanted, reading, read, dnf]
+              rating:
+                type: integer
+                nullable: true
+                minimum: 1
+                maximum: 5
+              started_at:
+                type: string
+                format: date
+                nullable: true
+              finished_at:
+                type: string
+                format: date
+                nullable: true
+              notes:
+                type: string
+                nullable: true
+                maxLength: 10000
+    responses:
+      "200":
+        description: Updated UserBook.
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/UserBook.yaml
+      "400":
+        $ref: ../components/responses/Problem400.yaml
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
+
+  delete:
+    summary: Remove the user's tracking of a book
+    description: |
+      Removes the anchor, all tag assignments, and shelf memberships.
+      Copies are preserved unless `?with_copies=true` is set — physical
+      ownership is treated as orthogonal to the relationship.
+    operationId: libraryDelete
+    tags: [library]
+    parameters:
+      - name: with_copies
+        in: query
+        schema:
+          type: boolean
+          default: false
+    responses:
+      "204":
+        description: Tracking removed.
+      "401":
+        $ref: ../components/responses/Problem401.yaml
+      "404":
+        $ref: ../components/responses/Problem404.yaml
